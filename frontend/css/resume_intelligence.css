@@ -1,0 +1,166 @@
+/* Resume Vault - Internshala Legacy Styling Reversion */
+
+.resume-vault-container {
+    padding: 30px 15px;
+    background-color: #f8f8f8;
+    min-height: 100vh;
+}
+
+.resume-vault-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 0 15px;
+}
+
+.resume-vault-header h1 {
+    font-size: 24px;
+    color: #333333;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.resume-vault-header p {
+    color: #666666;
+    font-size: 14px;
+}
+
+.resume-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 0 15px;
+}
+
+.resume-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.primary-resume {
+    border: 2px solid #008bdc; /* Internshala blue */
+}
+
+.resume-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.resume-card-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333333;
+}
+
+.resume-card-type {
+    font-size: 12px;
+    color: #888888;
+    margin-top: 5px;
+}
+
+.resume-card-body {
+    flex-grow: 1;
+    font-size: 13px;
+    color: #555555;
+    margin-bottom: 20px;
+}
+
+.resume-card-footer {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #eeeeee;
+    padding-top: 15px;
+}
+
+.upload-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: #fafafa;
+    border: 2px dashed #cccccc;
+}
+
+.upload-card:hover {
+    border-color: #008bdc;
+    background: #f0f8ff;
+}
+
+.upload-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    color: #008bdc;
+}
+
+.is-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.is-chip-success { background: #e6f6ec; color: #22a06b; }
+.is-chip-warning { background: #fff5d6; color: #b38600; }
+
+.vault-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.vault-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 6px;
+    width: 400px;
+    max-width: 90%;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: #eeeeee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #008bdc;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.insights-widget {
+    margin-top: 40px;
+    padding: 0 15px;
+}
+
+.insight-item {
+    background: white;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.text-error { color: #d92d20; }

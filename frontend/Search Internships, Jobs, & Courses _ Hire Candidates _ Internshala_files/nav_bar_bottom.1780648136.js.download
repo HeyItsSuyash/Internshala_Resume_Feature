@@ -1,0 +1,127 @@
+(function () {
+    if (window.__navBarBottomTrackingInitialized) {
+        return;
+    }
+    window.__navBarBottomTrackingInitialized = true;
+
+    var TRACKING_URL = '/api/offerings/track';
+    var trackedImpressions = {};
+    var hasTrackedVisibleImpressions = false;
+    var mobileViewportQuery = window.matchMedia('(max-width: 991px)');
+
+    function shouldInterceptTrackedNavigation(event) {
+        return !(
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        );
+    }
+
+    function trackOfferingsAd(category, offeringAdTrackingData, trackingType) {
+        if (typeof isCrawler !== 'undefined' && isCrawler === 1) {
+            return;
+        }
+        var formData = new FormData();
+        formData.append('category', category || '');
+        formData.append('offering_ad_tracking_data', offeringAdTrackingData || '');
+        formData.append('tracking_type', trackingType);
+        formData.append('url', window.location.href);
+
+        return fetch(TRACKING_URL, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+    }
+
+    function trackImpressions() {
+        var navElement = document.querySelector('.mobile-bottom-nav[data-offering-ad-tracking-data]');
+        var navItems;
+        var offeringAdTrackingData;
+
+        if (!navElement) {
+            return;
+        }
+
+        navItems = navElement.querySelectorAll('.mobile_bottom_nav_item_content[data-offering-category][data-is-ad="1"]');
+        if (!navItems.length) {
+            return;
+        }
+
+        offeringAdTrackingData = navElement.getAttribute('data-offering-ad-tracking-data') || '';
+
+        Array.prototype.forEach.call(navItems, function (navItem) {
+            var category = navItem.getAttribute('data-offering-category');
+
+            if (!category || trackedImpressions[category]) {
+                return;
+            }
+
+            trackedImpressions[category] = true;
+            trackOfferingsAd(category, offeringAdTrackingData, 'impression').catch(function () {
+                delete trackedImpressions[category];
+            });
+        });
+    }
+
+    function isElementVisible(element) {
+        if (!element) {
+            return false;
+        }
+
+        return mobileViewportQuery.matches;
+    }
+
+    function trackImpressionsWhenVisible() {
+        var navElement = document.querySelector('.mobile-bottom-nav[data-offering-ad-tracking-data]');
+
+        if (!navElement || !isElementVisible(navElement) || hasTrackedVisibleImpressions) {
+            return;
+        }
+
+        hasTrackedVisibleImpressions = true;
+        trackImpressions();
+    }
+
+    document.addEventListener('click', function (event) {
+        var navLink = event.target.closest('.mobile_bottom_nav_item_content[data-offering-category]');
+        var navElement;
+        var category;
+        var isAd;
+        var offeringAdTrackingData;
+        var url;
+
+        if (!navLink) {
+            return;
+        }
+
+        navElement = navLink.closest('.mobile-bottom-nav[data-offering-ad-tracking-data]');
+        if (!navElement) {
+            return;
+        }
+
+        category = navLink.getAttribute('data-offering-category') || '';
+        isAd = navLink.getAttribute('data-is-ad') === '1';
+        offeringAdTrackingData = navElement.getAttribute('data-offering-ad-tracking-data') || '';
+        url = navLink.getAttribute('href');
+
+        if (!isAd || !url || !shouldInterceptTrackedNavigation(event)) {
+            return;
+        }
+
+        event.preventDefault();
+
+        trackOfferingsAd(category, offeringAdTrackingData, 'click')
+            .catch(function () {
+                return null;
+            })
+            .then(function () {
+                window.location.assign(url);
+            });
+    });
+
+    window.addEventListener('load', trackImpressionsWhenVisible);
+}());

@@ -1,0 +1,163 @@
+const UPGRADE_TO_PRO_FADE_DURATION = 200;
+let restoreEasyApplyModalFocus = false;
+
+function updateUpgradeToProPaymentLinks(paymentUrl) {
+    const modal = $("#upgrade_to_pro_modal");
+    modal.find(".js-upgrade-to-pro-payment-link").attr("href", paymentUrl || "#");
+}
+
+function showUpgradeToProPanel(panel) {
+    panel.addClass("is-active");
+    window.requestAnimationFrame(function () {
+        panel.addClass("is-visible");
+    });
+}
+
+function hideUpgradeToProPanel(panel, callback) {
+    panel.removeClass("is-visible");
+
+    window.setTimeout(function () {
+        panel.removeClass("is-active");
+        if (typeof callback === "function") {
+            callback();
+        }
+    }, UPGRADE_TO_PRO_FADE_DURATION);
+}
+
+function switchUpgradeToProPanel(panelToHide, panelToShow, callback) {
+    hideUpgradeToProPanel(panelToHide, function () {
+        showUpgradeToProPanel(panelToShow);
+        if (typeof callback === "function") {
+            callback();
+        }
+    });
+}
+
+function resetUpgradeToProModalView() {
+    const modal = $("#upgrade_to_pro_modal");
+    const mainView = modal.find(".js-pro-modal-main-view");
+    const faqView = modal.find(".js-pro-modal-faq-view");
+
+    mainView.addClass("is-active is-visible");
+    faqView.removeClass("is-active is-visible");
+    modal.find(".js-pro-modal-hero").removeClass("d-none");
+    modal.find(".js-pro-modal-mobile-topbar").removeClass("d-none");
+    modal.find(".js-pro-modal-sticky-cta").removeClass("d-none");
+
+    modal.find(".upgrade_to_pro_modal__faq_answer").collapse("hide");
+    modal.find(".js-pro-modal-faq-toggle").attr("aria-expanded", "false");
+    modal.find(".js-pro-modal-faq-toggle").removeClass("active");
+    modal.find(".upgrade_to_pro_modal__faq_icon").text("+");
+}
+
+function syncUpgradeToProModalView() {
+    const modal = $("#upgrade_to_pro_modal");
+    const isFaqOpen = modal.find(".js-pro-modal-faq-view").hasClass("is-active");
+    const isMobileLayout = window.innerWidth <= 991;
+    const stickyPriceText = modal.find(".upgrade_to_pro_modal__sticky_price_text");
+    const stickyCaption = modal.find(".upgrade_to_pro_modal__sticky_caption");
+
+    if (isFaqOpen && isMobileLayout) {
+        modal.find(".js-pro-modal-hero").addClass("d-none");
+        modal.find(".js-pro-modal-sticky-cta").removeClass("d-none");
+        stickyPriceText.addClass("d-none");
+        stickyCaption.addClass("d-none");
+    } else {
+        modal.find(".js-pro-modal-hero").removeClass("d-none");
+        modal.find(".js-pro-modal-mobile-topbar").removeClass("d-none");
+        stickyPriceText.removeClass("d-none");
+        stickyCaption.removeClass("d-none");
+
+        if (!isFaqOpen) {
+            modal.find(".js-pro-modal-sticky-cta").removeClass("d-none");
+        }
+    }
+}
+
+function openUpgradeToProFaq() {
+    const modal = $("#upgrade_to_pro_modal");
+    const mainView = modal.find(".js-pro-modal-main-view");
+    const faqView = modal.find(".js-pro-modal-faq-view");
+
+    switchUpgradeToProPanel(mainView, faqView, function () {
+        syncUpgradeToProModalView();
+    });
+}
+
+$(document).ready(function () {
+    $(document).on("click", ".js-upgrade-to-pro-modal-open", function (e) {
+        document.cookie = "payment_referer=" + (window.location.href) + "; path=/";
+        e.preventDefault();
+        restoreEasyApplyModalFocus = $("#easy_apply_modal").hasClass("show");
+        updateUpgradeToProPaymentLinks($(this).data("paymentUrl"));
+        $(".layer.visible").click();
+        $("#upgrade_to_pro_modal").modal("show");
+    });
+
+    $(document).on("click", ".js-upgrade-to-pro-modal-close", function () {
+        document.cookie = "payment_referer=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        $("#upgrade_to_pro_modal").modal("hide");
+        // $('#easy_apply_modal').modal("hide");
+        // $('.easy_apply_modal_backdrop').hide();
+    });
+
+    $(document).on("click", ".js-pro-modal-show-faq", function () {
+        openUpgradeToProFaq();
+    });
+
+    $(document).on("click", ".js-pro-modal-back", function () {
+        const modal = $("#upgrade_to_pro_modal");
+        const mainView = modal.find(".js-pro-modal-main-view");
+        const faqView = modal.find(".js-pro-modal-faq-view");
+
+        switchUpgradeToProPanel(faqView, mainView, function () {
+            syncUpgradeToProModalView();
+        });
+    });
+
+    $(document).on("click", ".js-pro-modal-faq-toggle", function () {
+        const button = $(this);
+        const target = $(button.data("target"));
+        const willOpen = !target.hasClass("show");
+
+        $("#upgrade_to_pro_modal .js-pro-modal-faq-toggle").not(button).removeClass("active").attr("aria-expanded", "false");
+        $("#upgrade_to_pro_modal .js-pro-modal-faq-toggle").not(button).find(".upgrade_to_pro_modal__faq_icon").text("+");
+
+        button.toggleClass("active", willOpen);
+        button.attr("aria-expanded", willOpen ? "true" : "false");
+        button.find(".upgrade_to_pro_modal__faq_icon").text(willOpen ? "-" : "+");
+        target.collapse("toggle");
+    });
+
+    $("#upgrade_to_pro_modal").on("hidden.bs.modal", function () {
+        resetUpgradeToProModalView();
+
+        if (restoreEasyApplyModalFocus && $("#easy_apply_modal").hasClass("show")) {
+            // Bootstrap removes body modal state when the top modal closes.
+            $("body").addClass("modal-open");
+            $(".easy_apply_modal_backdrop").show();
+
+            const focusTarget = $("#easy_apply_modal")
+                .find("button:visible, [href]:visible, input:visible, select:visible, textarea:visible, [tabindex]:not([tabindex='-1']):visible")
+                .first();
+
+            if (focusTarget.length) {
+                focusTarget.trigger("focus");
+            } else {
+                $("#easy_apply_modal").attr("tabindex", "-1").trigger("focus");
+            }
+        }
+
+        restoreEasyApplyModalFocus = false;
+    });
+
+    $("#upgrade_to_pro_modal").on("shown.bs.modal", function () {
+        syncUpgradeToProModalView();
+    });
+
+    $(window).on("resize", function () {
+        if ($("#upgrade_to_pro_modal").hasClass("show")) {
+            syncUpgradeToProModalView();
+        }
+    });
+});

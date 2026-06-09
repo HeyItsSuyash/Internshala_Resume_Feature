@@ -1,0 +1,131 @@
+Case Study: Eliminating the Resume Bottleneck on Internshala
+Suyash Shukla 
+yolo@suyashshukla.com
+
+Background
+Internshala is one of India's largest internship platforms and serves millions of students seeking internships and early-career opportunities.
+However, while using the platform extensively, I noticed a major friction point in the candidate journey:
+The resume system is largely profile-based rather than resume-centric.
+Students are required to manually fill profile information across multiple sections, even when they already possess a well-structured resume.
+This creates unnecessary effort, duplication of information, and a suboptimal application experience.
+
+Problem
+Current Internshala Flow:
+
+Key Issues
+1. Existing Resume Cannot Be Leveraged Properly
+Most students already maintain resumes.
+Especially:
+Software Engineering resumes
+Product Management resumes
+Design resumes
+Research resumes
+However, the current process requires significant manual data entry instead of allowing the resume to become the primary source of truth. Although it allows exporting one’s resume for the first time, consequent changes become very inconvenient.
+
+2. One Profile Must Serve Every Application
+
+A student interested in:
+Software Engineering
+Product Management
+Data Analytics
+must use a single profile representation.
+This limits personalization and relevance.
+
+3. No Visibility Into Application Strength
+Before applying, students cannot easily understand:
+How strong their profile is for a specific role
+Which skills are missing
+Which parts of their resume are weak
+As a result, applications become a numbers game.
+
+
+
+Design Goal
+Transform Internshala from a profile-first application system into a resume-first application system.
+The resume should become the central object around which discovery, matching, and applications operate.
+Proposed Solution
+Feature 1: Resume Import
+Allow users to upload:
+PDF
+DOCX
+LaTeX-generated resumes
+The system extracts:
+Education
+Skills
+Projects
+Experience
+Achievements
+and automatically populates profile fields.
+Result:
+Reduce profile creation effort significantly.
+
+Feature 2: Multi-Resume Workspace
+Allow storage of up to five resumes.
+Examples:
+Resume 1:
+Software Engineering
+Resume 2:
+Product Management
+Resume 3:
+Data Analytics
+Resume 4:
+Research
+Resume 5:
+General
+Each resume is parsed independently.
+Feature 3: Smart Resume Recommendation
+When viewing an internship:
+Backend Developer Intern
+The system automatically recommends:
+"Your Software Engineering Resume is the best fit for this role."
+instead of forcing users to guess.
+Feature 4: Application Match Insights
+Before applying:
+Role Match Score: 82%
+Strengths:
+✓ Backend Projects
+✓ React Experience
+✓ GitHub Portfolio
+Weaknesses:
+⚠ No Cloud Experience
+⚠ No Internship Experience
+This provides actionable guidance before application submission.
+
+
+
+
+
+
+
+
+
+
+Expected Impact
+For Students
+Faster onboarding
+Reduced manual profile filling
+Better opportunity discovery
+More targeted applications
+For Recruiters
+Better applicant-role alignment
+Higher quality applicant pools
+For Internshala
+Increased application success rates
+Higher user engagement
+Improved recommendation quality
+Stronger differentiation from competing platforms
+Success Metric
+Primary Metric
+Applications per Interview
+Secondary Metrics
+Profile completion rate
+Resume upload rate
+Recommendation click-through rate
+Application conversion rate
+
+
+Vision
+Internshala should not ask students to repeatedly describe themselves.
+Students already have resumes.
+The platform should understand those resumes, organize them intelligently, and help students apply with the right version of themselves to the right opportunity.
+

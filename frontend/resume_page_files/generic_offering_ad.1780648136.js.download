@@ -1,0 +1,204 @@
+(function () {
+    if (window.__genericOfferingAdTrackingInitialized) {
+        return;
+    }
+    window.__genericOfferingAdTrackingInitialized = true;
+
+    var TRACKING_URL = '/api/offerings/track';
+    var genericAdImpressionObserver = null;
+    var genericAdTrackedElements = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
+    var genericAdTrackedFallbackIds = {};
+
+    function shouldInterceptTrackedNavigation(event) {
+        return !(
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        );
+    }
+
+    function trackOfferingsAd(category, offeringAdTrackingData, trackingType) {
+        if (typeof isCrawler !== 'undefined' && isCrawler === 1) {
+            return;
+        }
+        var formData = new FormData();
+        formData.append('category', category || '');
+        formData.append('offering_ad_tracking_data', offeringAdTrackingData || '');
+        formData.append('tracking_type', trackingType);
+        formData.append('url', window.location.href);
+
+        return fetch(TRACKING_URL, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+    }
+
+    function isGenericOfferingAdElement(element) {
+        return !!(
+            element &&
+            element.classList &&
+            element.classList.contains('generic-offering-ad') &&
+            !element.classList.contains('mobile-bottom-nav') &&
+            element.getAttribute('data-is-ad') === '1' &&
+            element.hasAttribute('data-offering-ad-tracking-data')
+        );
+    }
+
+    function hasTrackedGenericAdImpression(adElement) {
+        if (genericAdTrackedElements) {
+            return genericAdTrackedElements.has(adElement);
+        }
+
+        var fallbackId = adElement.id || adElement.getAttribute('data-ad-id');
+        return !!(fallbackId && genericAdTrackedFallbackIds[fallbackId]);
+    }
+
+    function markGenericAdImpressionTracked(adElement) {
+        if (genericAdTrackedElements) {
+            genericAdTrackedElements.add(adElement);
+            return;
+        }
+
+        var fallbackId = adElement.id || adElement.getAttribute('data-ad-id');
+        if (fallbackId) {
+            genericAdTrackedFallbackIds[fallbackId] = true;
+        }
+    }
+
+    function unmarkGenericAdImpressionTracked(adElement) {
+        if (genericAdTrackedElements) {
+            genericAdTrackedElements.delete(adElement);
+            return;
+        }
+
+        var fallbackId = adElement.id || adElement.getAttribute('data-ad-id');
+        if (fallbackId) {
+            delete genericAdTrackedFallbackIds[fallbackId];
+        }
+    }
+
+    function trackGenericAdImpression(adElement) {
+        var category;
+        var offeringAdTrackingData;
+
+        if (!isGenericOfferingAdElement(adElement) || hasTrackedGenericAdImpression(adElement)) {
+            return;
+        }
+
+        markGenericAdImpressionTracked(adElement);
+        category = adElement.getAttribute('data-offering-category') || '';
+        offeringAdTrackingData = adElement.getAttribute('data-offering-ad-tracking-data') || '';
+
+        trackOfferingsAd(category, offeringAdTrackingData, 'impression').catch(function () {
+            unmarkGenericAdImpressionTracked(adElement);
+        });
+    }
+
+    function observeGenericOfferingAdElement(adElement) {
+        if (!isGenericOfferingAdElement(adElement) || hasTrackedGenericAdImpression(adElement)) {
+            return;
+        }
+
+        if (genericAdImpressionObserver) {
+            genericAdImpressionObserver.observe(adElement);
+            return;
+        }
+
+        trackGenericAdImpression(adElement);
+    }
+
+    function observeGenericOfferingAds(root) {
+        var ads;
+        var container = root && root.querySelectorAll ? root : document;
+
+        if (!container.querySelectorAll) {
+            return;
+        }
+
+        ads = container.querySelectorAll('.generic-offering-ad[data-offering-ad-tracking-data][data-is-ad="1"]');
+        Array.prototype.forEach.call(ads, function (adElement) {
+            observeGenericOfferingAdElement(adElement);
+        });
+    }
+
+    function initGenericOfferingAdTracking() {
+        if ('IntersectionObserver' in window) {
+            genericAdImpressionObserver = new IntersectionObserver(function (entries) {
+                Array.prototype.forEach.call(entries, function (entry) {
+                    if (!entry.isIntersecting || entry.intersectionRatio <= 0) {
+                        return;
+                    }
+
+                    trackGenericAdImpression(entry.target);
+                    genericAdImpressionObserver.unobserve(entry.target);
+                });
+            }, { threshold: 0.25 });
+        }
+
+        observeGenericOfferingAds(document);
+
+        if ('MutationObserver' in window && document.body) {
+            new MutationObserver(function (mutations) {
+                Array.prototype.forEach.call(mutations, function (mutation) {
+                    Array.prototype.forEach.call(mutation.addedNodes, function (node) {
+                        if (node.nodeType !== 1) {
+                            return;
+                        }
+
+                        if (isGenericOfferingAdElement(node)) {
+                            observeGenericOfferingAdElement(node);
+                            return;
+                        }
+
+                        observeGenericOfferingAds(node);
+                    });
+                });
+            }).observe(document.body, { childList: true, subtree: true });
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        var genericAdLink = event.target.closest('a[href]');
+        var genericAdElement;
+        var category;
+        var offeringAdTrackingData;
+        var url;
+
+        if (!genericAdLink) {
+            return;
+        }
+
+        genericAdElement = genericAdLink.closest('.generic-offering-ad[data-offering-ad-tracking-data][data-is-ad="1"]');
+        if (!genericAdElement || genericAdElement.classList.contains('mobile-bottom-nav')) {
+            return;
+        }
+
+        category = genericAdElement.getAttribute('data-offering-category') || '';
+        offeringAdTrackingData = genericAdElement.getAttribute('data-offering-ad-tracking-data') || '';
+        url = genericAdLink.getAttribute('href');
+
+        if (!url || !shouldInterceptTrackedNavigation(event)) {
+            return;
+        }
+
+        event.preventDefault();
+
+        trackOfferingsAd(category, offeringAdTrackingData, 'click')
+            .catch(function () {
+                return null;
+            })
+            .then(function () {
+                window.location.assign(url);
+            });
+    });
+
+    if (document.body) {
+        initGenericOfferingAdTracking();
+    } else {
+        document.addEventListener('DOMContentLoaded', initGenericOfferingAdTracking);
+    }
+}());
