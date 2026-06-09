@@ -8,6 +8,10 @@ import shutil
 import datetime
 import json
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (if it exists)
+load_dotenv()
 
 from parser import extract_text_from_file, parse_resume_with_groq, analyze_match_with_groq
 
