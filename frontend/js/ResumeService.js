@@ -1,6 +1,14 @@
 class ResumeService {
     constructor() {
-        this.API_BASE = 'http://localhost:8000/api';
+        // If running via Live Server or file://, point to local backend
+        const isLocalFrontendOnly = window.location.protocol === 'file:' || window.location.port === '8080' || window.location.port === '3000';
+        
+        // If deployed on Vercel, this should point to your deployed Render backend URL.
+        // For example: 'https://internshala-resume-vault.onrender.com/api'
+        // Otherwise, if deployed together on Render, '/api' works automatically.
+        const PROD_BACKEND_URL = '/api'; 
+
+        this.API_BASE = isLocalFrontendOnly ? 'http://localhost:8000/api' : PROD_BACKEND_URL;
     }
 
     async getAllResumes() {
